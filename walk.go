@@ -78,7 +78,9 @@ func main() {
 	seed := time.Now().Unix()
 	rand.Seed(seed)
 
-	// add nucleation point at the middle of the grid
+	//for i := 0; i < 10; i++ {
+	//	grid[rand.Intn(dim)][rand.Intn(dim)] += 1
+	//}
 	grid[dim/2][dim/2] = 1
 
 	for i := 0; i < 500; i++ {
