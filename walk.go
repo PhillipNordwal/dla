@@ -7,6 +7,7 @@ import (
 	"os"
 	"runtime/pprof"
 	"time"
+	"github.com/PhillipNordwal/gobitrand"
 )
 
 var (
@@ -36,7 +37,7 @@ func (p *Particle) has_neighbor(grid [][]int) bool {
 }
 
 func (p *Particle) move() {
-	n := rand.Intn(4)
+	n := gobitrand.Two_bits()
 	switch n {
 	case 0:
 		p.X = wrap(p.X, 1)
