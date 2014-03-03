@@ -8,6 +8,7 @@ import (
 	"runtime/pprof"
 	"time"
 	"github.com/PhillipNordwal/gobitrand"
+	"flag"
 )
 
 var (
@@ -80,6 +81,13 @@ func writeToFile(grid [][]int) error {
 }
 
 func main() {
+	var seed int64
+	flag.IntVar( &dim, "dim", dim, "size of the square grid")
+	flag.Int64Var( &seed, "seed", 0, "reproducible seed passed in")
+	flag.IntVar( &particle_count, "particle_count", particle_count, "number of particles to emit")
+	flag.IntVar( &nucleation_sites, "nucleation_sites", nucleation_sites, "number of nucleation sites")
+	flag.Parse()
+
 	f, _ := os.Create("my_profile.file")
 	pprof.StartCPUProfile(f)
 	defer pprof.StopCPUProfile()
@@ -89,7 +97,10 @@ func main() {
 		grid[i] = make([]int, dim)
 	}
 
-	seed := time.Now().Unix()
+	// only use a random seed if one isn't specified
+	if seed == 0 {
+		seed = time.Now().UTC().UnixNano()
+	}
 	rand.Seed(seed)
 
 	for i := 0; i < nucleation_sites; i++ {
