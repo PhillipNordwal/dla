@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"math/rand"
+	"os"
 	"time"
 )
 
-var dim int = 60
+var dim int = 600
 
 type Particle struct {
 	X, Y int
@@ -69,6 +71,24 @@ func draw(grid [][]int) {
 	fmt.Print("\n")
 }
 
+func writeToFile(grid [][]int) error {
+	file, err := os.Create("output.txt")
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	w := bufio.NewWriter(file)
+	for i := range grid {
+		for j := range grid[i] {
+			if grid[i][j] != 0 {
+				fmt.Fprintln(w, i, j, grid[i][j])
+			}
+		}
+	}
+	return w.Flush()
+}
+
 func main() {
 	grid := make([][]int, dim)
 	for i := range grid {
@@ -78,15 +98,14 @@ func main() {
 	seed := time.Now().Unix()
 	rand.Seed(seed)
 
-	//for i := 0; i < 10; i++ {
-	//	grid[rand.Intn(dim)][rand.Intn(dim)] += 1
-	//}
-	grid[dim/2][dim/2] = 1
+	for i := 0; i < 20; i++ {
+		grid[rand.Intn(dim)][rand.Intn(dim)] += 1
+	}
 
-	for i := 0; i < 500; i++ {
+	for i := 0; i < 80000; i++ {
 		walker := &Particle{X: rand.Intn(dim), Y: rand.Intn(dim)}
 		steps := 0
-		for steps < 5000 {
+		for steps < 10000 {
 			if walker.has_neighbor(grid) {
 				grid[walker.X][walker.Y] += 1
 				break
@@ -96,5 +115,6 @@ func main() {
 
 		}
 	}
-	draw(grid)
+	writeToFile(grid)
+	//draw(grid)
 }
