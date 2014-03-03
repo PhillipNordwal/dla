@@ -5,17 +5,21 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"runtime/pprof"
 	"time"
 )
 
-var dim int = 600
+var (
+	dim              int = 400
+	particle_count   int = 40000
+	nucleation_sites int = 10
+)
 
 type Particle struct {
 	X, Y int
 }
 
 func (p *Particle) has_neighbor(grid [][]int) bool {
-	has_neighbor := false
 	res := [][]int{
 		{p.X, p.Y},
 		{wrap(p.X, 1), p.Y},
@@ -23,13 +27,12 @@ func (p *Particle) has_neighbor(grid [][]int) bool {
 		{p.X, wrap(p.Y, 1)},
 		{p.X, wrap(p.Y, -1)},
 	}
-	for i := range res {
-		if grid[res[i][0]][res[i][1]] != 0 {
-			has_neighbor = true
-			break
+	for _, val := range res {
+		if grid[val[0]][val[1]] != 0 {
+			return true
 		}
 	}
-	return has_neighbor
+	return false
 }
 
 func (p *Particle) move() {
@@ -57,20 +60,6 @@ func wrap(n, offset int) int {
 	return res
 }
 
-func draw(grid [][]int) {
-	for i := range grid {
-		for j := range grid[i] {
-			if grid[i][j] == 0 {
-				fmt.Printf(". ")
-			} else {
-				fmt.Printf("%d ", grid[i][j])
-			}
-		}
-		fmt.Print("\n")
-	}
-	fmt.Print("\n")
-}
-
 func writeToFile(grid [][]int) error {
 	file, err := os.Create("output.txt")
 	if err != nil {
@@ -90,6 +79,10 @@ func writeToFile(grid [][]int) error {
 }
 
 func main() {
+	f, _ := os.Create("my_profile.file")
+	pprof.StartCPUProfile(f)
+	defer pprof.StopCPUProfile()
+
 	grid := make([][]int, dim)
 	for i := range grid {
 		grid[i] = make([]int, dim)
@@ -98,23 +91,21 @@ func main() {
 	seed := time.Now().Unix()
 	rand.Seed(seed)
 
-	for i := 0; i < 20; i++ {
+	for i := 0; i < nucleation_sites; i++ {
 		grid[rand.Intn(dim)][rand.Intn(dim)] += 1
 	}
 
-	for i := 0; i < 80000; i++ {
+	for i := 0; i < particle_count; i++ {
 		walker := &Particle{X: rand.Intn(dim), Y: rand.Intn(dim)}
 		steps := 0
-		for steps < 10000 {
+		for {
 			if walker.has_neighbor(grid) {
 				grid[walker.X][walker.Y] += 1
 				break
 			}
 			walker.move()
 			steps += 1
-
 		}
 	}
 	writeToFile(grid)
-	//draw(grid)
 }
